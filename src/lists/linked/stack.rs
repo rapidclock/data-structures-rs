@@ -45,6 +45,12 @@ impl <T> Stack<T> {
             next : self.head.as_deref(),
         }
     }
+    
+    pub fn iter_mut(&mut self) -> StackIterMut<T> {
+        StackIterMut {
+            node: self.head.as_deref_mut()
+        }
+    }
 }
 
 impl <T> Drop for Stack<T> {
@@ -109,6 +115,20 @@ impl <'a, T> Iterator for StackIter<'a, T> {
     }
 }
 
+pub struct StackIterMut<'a, T> {
+    node: Option<&'a mut Node<T>>
+}
+
+impl <'a, T> Iterator for StackIterMut<'a, T> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.node.take().map(|node| {
+            self.node = node.next.as_deref_mut();
+            &mut node.elem
+        })
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -194,5 +214,16 @@ mod tests {
         assert_eq!(iter.next(), Some(&3));
         assert_eq!(iter.next(), Some(&2));
         assert_eq!(iter.next(), Some(&1));
+    }
+
+    #[test]
+    fn iter_mut() {
+        let mut list = Stack::new();
+        list.push(1); list.push(2); list.push(3);
+
+        let mut iter = list.iter_mut();
+        assert_eq!(iter.next(), Some(&mut 3));
+        assert_eq!(iter.next(), Some(&mut 2));
+        assert_eq!(iter.next(), Some(&mut 1));
     }
 }
