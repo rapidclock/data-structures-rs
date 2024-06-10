@@ -42,7 +42,7 @@ impl <T> Stack<T> {
 
     pub fn iter(&self) -> StackIter<T> {
         StackIter {
-            next : self.head.as_ref().map(|node| node.as_ref())
+            next : self.head.as_deref(),
         }
     }
 }
@@ -98,7 +98,11 @@ impl <'a, T> Iterator for StackIter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.next.take().map(|node| {
+        // self.next.take().map(|node| {
+        //     self.next = node.next.as_deref();
+        //     &node.elem
+        // })
+        self.next.map(|node| {
             self.next = node.next.as_deref();
             &node.elem
         })
