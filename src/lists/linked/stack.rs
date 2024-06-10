@@ -2,8 +2,6 @@ pub struct Stack<T> {
     head: Option<Box<Node<T>>>
 }
 
-
-
 struct Node<T> {
     elem: T,
     next: Option<Box<Node<T>>>,
@@ -40,6 +38,12 @@ impl <T> Stack<T> {
         self.head.as_mut().map(|node| {
             &mut node.elem
         })
+    }
+
+    pub fn iter(&self) -> StackIter<T> {
+        StackIter {
+            next : self.head.as_ref().map(|node| node.as_ref())
+        }
     }
 }
 
@@ -83,6 +87,21 @@ impl <T> IntoIterator for Stack<T> {
         Self::IntoIter {
             stack: self
         }
+    }
+}
+
+pub struct StackIter<'a, T> {
+    next: Option<&'a Node<T>>
+}
+
+impl <'a, T> Iterator for StackIter<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.take().map(|node| {
+            self.next = node.next.as_deref();
+            &node.elem
+        })
     }
 }
 
@@ -160,5 +179,16 @@ mod tests {
             assert_eq!(n, expected[idx]);
             idx += 1;
         }
+    }
+
+    #[test]
+    fn iter() {
+        let mut list = Stack::new();
+        list.push(1); list.push(2); list.push(3);
+
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&1));
     }
 }
