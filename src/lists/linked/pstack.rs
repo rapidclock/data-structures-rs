@@ -50,6 +50,19 @@ impl <T> PStack<T> {
     }
 }
 
+impl <T> Drop for PStack<T> {
+    fn drop(&mut self) {
+        let mut cur = self.head.take();
+        while let Some(rc_node) = cur {
+            if let Ok(mut node) = Rc::try_unwrap(rc_node) {
+                cur = node.next.take();
+            } else {
+                break;
+            }
+        }
+    }
+}
+
 pub struct PStackIter<'a, T> {
     cur : Option<&'a Node<T>>,
 }
